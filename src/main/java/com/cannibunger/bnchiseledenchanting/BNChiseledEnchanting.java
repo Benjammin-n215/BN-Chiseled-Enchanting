@@ -1,5 +1,7 @@
 package com.cannibunger.bnchiseledenchanting;
 
+import com.cannibunger.bnchiseledenchanting.block.ModBlocks;
+import com.cannibunger.bnchiseledenchanting.item.ModItems;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -47,6 +49,9 @@ public class BNChiseledEnchanting {
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
+        ModBlocks.register(modEventBus);
+        ModItems.register(modEventBus);
+
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
@@ -60,7 +65,9 @@ public class BNChiseledEnchanting {
 
     // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-
+        if(event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+            event.accept(ModBlocks.ENCHANTING_INSCRIBER);
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
