@@ -62,7 +62,7 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
 
             // display enchant text [name + num + cost]
             Component label = Component.literal(enchantment.description().getString())
-                    .append(Component.literal(" " + option.level() + "  (" + option.xpCost() + " XP)"));
+                    .append(Component.literal(" " + option.level() + "  (" + option.xpCost() + " Levels)"));
 
             // calculate y position of row then render
             int rowY = topPos + LIST_Y + i * ROW_HEIGHT;
