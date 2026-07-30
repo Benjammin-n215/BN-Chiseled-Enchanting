@@ -3,6 +3,7 @@ package com.cannibunger.bnchiseledenchanting.block.custom;
 import com.cannibunger.bnchiseledenchanting.block.entity.EnchantingInscriberBlockEntity;
 import com.cannibunger.bnchiseledenchanting.block.entity.ModBlockEntities;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -153,7 +154,12 @@ public class EnchantingInscriber extends BaseEntityBlock {
     // tooltip
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("tooltip.bnchiseledenchanting.enchanting_inscriber.tooltip"));
+        if (!Screen.hasShiftDown()) {
+            tooltipComponents.add(Component.translatable("tooltip.bnchiseledenchanting.shiftdown.tooltip"));
+        } else {
+            tooltipComponents.add(Component.translatable("tooltip.bnchiseledenchanting.enchanting_inscriber.tooltip"));
+        }
+
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
     }
 }

@@ -41,6 +41,9 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
         this(containerId, playerInventory, blockEntity, blockEntity.scanAvailableEnchantments());
     }
 
+    public final int invYStart = 140;               // 139 - start y for inventory
+    public final int hotbarY = 198;                 // 197 - hotbar y
+
     // shared constructor
     private EnchantingInscriberMenu(int containerId, Inventory playerInventory, EnchantingInscriberBlockEntity blockEntity, List<EnchantingInscriberBlockEntity.EnchantmentOption> options) {
         super(ModMenuTypes.ENCHANTING_INSCRIBER_MENU.get(), containerId);
@@ -67,8 +70,10 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
             }
         };
 
+
+
         // add UI slot for enchanted, restrict to enchantable items and limit to 1 item
-        addSlot(new Slot(inputContainer, 0, 15, 47) {
+        addSlot(new Slot(inputContainer, 0, 25, 61) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.getItem().isEnchantable(stack);
@@ -81,25 +86,25 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
         });
 
         // ingredient slots: amethyst shard, echo shard, blaze powder, dragon's breath
-        addSlot(new Slot(ingredientContainer, 0, 41, 47) {
+        addSlot(new Slot(ingredientContainer, 0, 15, 83) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(net.minecraft.world.item.Items.AMETHYST_SHARD);
             }
         });
-        addSlot(new Slot(ingredientContainer, 1, 63, 47) {
+        addSlot(new Slot(ingredientContainer, 1, 35, 83) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(net.minecraft.world.item.Items.ECHO_SHARD);
             }
         });
-        addSlot(new Slot(ingredientContainer, 2, 85, 47) {
+        addSlot(new Slot(ingredientContainer, 2, 15, 103) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(net.minecraft.world.item.Items.BLAZE_POWDER);
             }
         });
-        addSlot(new Slot(ingredientContainer, 3, 107, 47) {
+        addSlot(new Slot(ingredientContainer, 3, 35, 103) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.is(net.minecraft.world.item.Items.DRAGON_BREATH);
@@ -109,11 +114,11 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
         // default inventory adder
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
+                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, invYStart + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
+            addSlot(new Slot(playerInventory, col, 8 + col * 18, hotbarY));
         }
     }
 

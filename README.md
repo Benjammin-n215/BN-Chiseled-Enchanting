@@ -2,8 +2,10 @@ to do:
 
 visual
 - rather than scroll thru enchant options index, render full list as a scrollable element
-- display roman numeral instead of raw number
-- better UI
+  - - make window wider to allow more space for names + scrollbar?
+- unaffordable enchantments shown in red
+- grey text over enchantments already claimed
+
 
 low prio
 - fix server double checking on ui open?
@@ -23,3 +25,7 @@ added:
 - steep starting curve [x * x^(0.5i)]?
 - using various magical ingredients (amethyst shard + echo shard + blaze powder) can flatten curve
 - fix return items
+
+(+) display roman numeral instead of raw number
+
+(+)better UI

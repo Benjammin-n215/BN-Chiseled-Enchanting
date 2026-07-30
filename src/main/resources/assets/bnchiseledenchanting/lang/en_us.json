@@ -1,9 +1,12 @@
 {
   "block.bnchiseledenchanting.enchanting_inscriber": "Enchanting Inscriber",
 
-  "tooltip.bnchiseledenchanting.enchanting_inscriber.tooltip": "§7§oPulls enchantments from chiseled bookshelves§r",
+  "tooltip.bnchiseledenchanting.enchanting_inscriber.tooltip": "§6§oPulls enchantments from nearby§r\n§e§ochiseled bookshelves§r\n\n§6§oSeems it can be empowered with§r\n§e§ocertain magical items...§r",
+  "tooltip.bnchiseledenchanting.shiftdown.tooltip":"§8Hold [§7Shift§8] for Summary",
 
-  "gui.bnchiseledenchanting.no_enchantments_found": "No Enchantments Nearby!",
-  "gui.bnchiseledenchanting.awaiting_item": "Awaiting Item",
-  "gui.bnchiseledenchanting.no_compatible_enchantments": "No compatible enchantments!"
+  "gui.bnchiseledenchanting.no_enchantments_found1": "No enchantments",
+  "gui.bnchiseledenchanting.no_enchantments_found2": "nearby!",
+  "gui.bnchiseledenchanting.awaiting_item": "Awaiting item",
+  "gui.bnchiseledenchanting.no_compatible_enchantments1": "No compatible",
+  "gui.bnchiseledenchanting.no_compatible_enchantments2": "enchantments!"
 }
