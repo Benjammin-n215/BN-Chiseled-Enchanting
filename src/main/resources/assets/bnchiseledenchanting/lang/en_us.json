@@ -1,3 +1,9 @@
 {
-  "block.bnchiseledenchanting.enchanting_inscriber": "Enchanting Inscriber"
+  "block.bnchiseledenchanting.enchanting_inscriber": "Enchanting Inscriber",
+
+  "tooltip.bnchiseledenchanting.enchanting_inscriber.tooltip": "§7§oPulls enchantments from chiseled bookshelves§r",
+
+  "gui.bnchiseledenchanting.no_enchantments_found": "No Enchantments Nearby!",
+  "gui.bnchiseledenchanting.awaiting_item": "Awaiting Item",
+  "gui.bnchiseledenchanting.no_compatible_enchantments": "No compatible enchantments!"
 }

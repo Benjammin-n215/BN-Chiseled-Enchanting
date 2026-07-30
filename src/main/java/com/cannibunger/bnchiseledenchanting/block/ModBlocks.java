@@ -1,6 +1,7 @@
 package com.cannibunger.bnchiseledenchanting.block;
 
 import com.cannibunger.bnchiseledenchanting.BNChiseledEnchanting;
+import com.cannibunger.bnchiseledenchanting.block.custom.EnchantingInscriber;
 import com.cannibunger.bnchiseledenchanting.item.ModItems;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -19,18 +20,20 @@ public class ModBlocks {
     // "enables" registering blocks from the mod
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(BNChiseledEnchanting.MODID);
 
-    // data for enchanting inscriber
+    // properties for enchanting inscriber
     public static final DeferredBlock<Block> ENCHANTING_INSCRIBER = registerBlock(
             "enchanting_inscriber",
-            () -> new Block(BlockBehaviour.Properties.of()
+            () -> new EnchantingInscriber(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_RED)
                     .instrument(NoteBlockInstrument.BASEDRUM)
                     .requiresCorrectToolForDrops()
                     .lightLevel(p_152692_ -> 7)
                     .strength(5f, 1200.0F)
-                    .sound(SoundType.ANVIL)
+                    .sound(SoundType.AMETHYST_CLUSTER)
+                    .noOcclusion()
             )
     );
+
 
     // register block AND item
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Supplier<T> block) {

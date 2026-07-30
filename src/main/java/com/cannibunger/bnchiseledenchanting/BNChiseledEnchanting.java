@@ -1,7 +1,18 @@
 package com.cannibunger.bnchiseledenchanting;
 
 import com.cannibunger.bnchiseledenchanting.block.ModBlocks;
+import com.cannibunger.bnchiseledenchanting.block.entity.ModBlockEntities;
+import com.cannibunger.bnchiseledenchanting.block.entity.renderer.EnchantingInscriberBlockEntityRenderer;
 import com.cannibunger.bnchiseledenchanting.item.ModItems;
+import com.cannibunger.bnchiseledenchanting.screen.ModMenuTypes;
+import com.cannibunger.bnchiseledenchanting.screen.custom.EnchantingInscriberMenu;
+import com.cannibunger.bnchiseledenchanting.screen.custom.EnchantingInscriberScreen;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -51,6 +62,8 @@ public class BNChiseledEnchanting {
 
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
+        ModBlockEntities.register(modEventBus);
+        ModMenuTypes.register(modEventBus);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
@@ -75,5 +88,17 @@ public class BNChiseledEnchanting {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+
+    @EventBusSubscriber(modid = BNChiseledEnchanting.MODID, value = Dist.CLIENT) public static class ClientModEvents {
+        @SubscribeEvent
+        public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
+            event.registerBlockEntityRenderer(ModBlockEntities.ENCHANTING_INSCRIBER_BE.get(), EnchantingInscriberBlockEntityRenderer::new);
+        }
+
+        @SubscribeEvent
+        public static void registerScreens(RegisterMenuScreensEvent event) {
+            event.register(ModMenuTypes.ENCHANTING_INSCRIBER_MENU.get(), EnchantingInscriberScreen::new);
+        }
     }
 }
