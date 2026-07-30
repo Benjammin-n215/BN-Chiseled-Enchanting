@@ -14,8 +14,11 @@ added:
 (+) only show applicable enchantments
 - create method in inscriberMenu that checks canApply() against whole list, returning compatible?
 - fix crash
+
 (+) allow enchanted items to be used
+
 (+) get inscriber to retain name
+
 (+) enchanting ingredients that can reduce cost of enchantment
 - steep starting curve [x * x^(0.5i)]?
 - using various magical ingredients (amethyst shard + echo shard + blaze powder) can flatten curve
