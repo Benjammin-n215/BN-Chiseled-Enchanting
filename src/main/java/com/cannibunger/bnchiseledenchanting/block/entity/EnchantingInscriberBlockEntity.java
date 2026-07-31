@@ -25,10 +25,7 @@ import net.minecraft.world.level.block.entity.ChiseledBookShelfBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class EnchantingInscriberBlockEntity extends BlockEntity implements Nameable, MenuProvider {
     public int time;
@@ -234,12 +231,15 @@ public class EnchantingInscriberBlockEntity extends BlockEntity implements Namea
             }
         }
 
-        System.out.println((level.isClientSide ? "CLIENT" : "SERVER") + " Bookshelves: " + bookShelvesFound + ", enchants: " + bestLevels.size());  // debug
+        //System.out.println((level.isClientSide ? "CLIENT" : "SERVER") + " Bookshelves: " + bookShelvesFound + ", enchants: " + bestLevels.size());  // debug
 
         // assemble result
         for (Map.Entry<Holder<Enchantment>, Integer> enchant : bestLevels.entrySet()) {
             result.add(new EnchantmentOption(enchant.getKey(), enchant.getValue(), enchant.getValue()));
         }
+
+        // sort alphabetically
+        result.sort(Comparator.comparing(o -> o.enchantment().value().description().getString()));
 
         return result;
     }

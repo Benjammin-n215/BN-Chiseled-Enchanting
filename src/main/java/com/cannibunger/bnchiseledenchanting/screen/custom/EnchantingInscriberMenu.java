@@ -14,6 +14,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -41,9 +42,11 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
         this(containerId, playerInventory, blockEntity, blockEntity.scanAvailableEnchantments());
     }
 
-    public final int invYStart = 140;               // 139 - start y for inventory
-    public final int hotbarY = 198;                 // 197 - hotbar y
-
+    public static final int invXStart = 9 + 8;              // 29  - start x for inventory
+    public static final int invYStart = 140;                // 140 - start y for inventory
+    public static final int hotbarY = 198;                  // 198 - hotbar y
+    public static final int inscriberInvX = 21;             // 25  - start x for slot
+    public static final int inscriberInvY = 58;             // 61  - start y for slot
     // shared constructor
     private EnchantingInscriberMenu(int containerId, Inventory playerInventory, EnchantingInscriberBlockEntity blockEntity, List<EnchantingInscriberBlockEntity.EnchantmentOption> options) {
         super(ModMenuTypes.ENCHANTING_INSCRIBER_MENU.get(), containerId);
@@ -73,7 +76,7 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
 
 
         // add UI slot for enchanted, restrict to enchantable items and limit to 1 item
-        addSlot(new Slot(inputContainer, 0, 25, 61) {
+        addSlot(new Slot(inputContainer, 0, inscriberInvX, inscriberInvY) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return stack.getItem().isEnchantable(stack);
@@ -85,40 +88,41 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
             }
         });
 
+
         // ingredient slots: amethyst shard, echo shard, blaze powder, dragon's breath
-        addSlot(new Slot(ingredientContainer, 0, 15, 83) {
+        addSlot(new Slot(ingredientContainer, 0, inscriberInvX - 10, inscriberInvY + 22) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(net.minecraft.world.item.Items.AMETHYST_SHARD);
+                return stack.is(Items.AMETHYST_SHARD);
             }
         });
-        addSlot(new Slot(ingredientContainer, 1, 35, 83) {
+        addSlot(new Slot(ingredientContainer, 1, inscriberInvX + 10, inscriberInvY + 22) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(net.minecraft.world.item.Items.ECHO_SHARD);
+                return stack.is(Items.TRIAL_KEY);
             }
         });
-        addSlot(new Slot(ingredientContainer, 2, 15, 103) {
+        addSlot(new Slot(ingredientContainer, 2, inscriberInvX - 10, inscriberInvY + 42) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(net.minecraft.world.item.Items.BLAZE_POWDER);
+                return stack.is(Items.BLAZE_POWDER);
             }
         });
-        addSlot(new Slot(ingredientContainer, 3, 35, 103) {
+        addSlot(new Slot(ingredientContainer, 3, inscriberInvX + 10, inscriberInvY + 42) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(net.minecraft.world.item.Items.DRAGON_BREATH);
+                return stack.is(Items.DRAGON_BREATH);
             }
         });
 
         // default inventory adder
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, invYStart + row * 18));
+                addSlot(new Slot(playerInventory, col + row * 9 + 9, invXStart + col * 18, invYStart + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(playerInventory, col, 8 + col * 18, hotbarY));
+            addSlot(new Slot(playerInventory, col, invXStart + col * 18, hotbarY));
         }
     }
 
@@ -141,13 +145,16 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
     // accessor for options that allows checking compatibility
     // ALSO, apply xp cost formula
     public List<indexedOption> getCompatibleOptions() {
-        List<indexedOption> result = new ArrayList<>();                                 // output list
-        ItemStack target = inputContainer.getItem(0);                               // fetch inscriber inventory
+        List<indexedOption> result = new ArrayList<>();                   // output list
+        ItemStack target = inputContainer.getItem(0);                // fetch inscriber inventory
 
         for (int i = 0; i < options.size(); i++) {
             EnchantingInscriberBlockEntity.EnchantmentOption option = options.get(i);   // get enchant
 
             if (canApply(target, options.get(i).enchantment())) {
+                if(EnchantmentHelper.getEnchantmentsForCrafting(target).keySet().contains(option.enchantment())) {
+                    continue;   // if enchantment already applied, skip
+                }
                 int cost = calculateXpCost(option.level());                             // calculate xp cost
                 EnchantingInscriberBlockEntity.EnchantmentOption adjusted = new EnchantingInscriberBlockEntity.EnchantmentOption(option.enchantment(), option.level(), cost);
                 result.add(new indexedOption(i, adjusted));                             // append to output
@@ -329,8 +336,9 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
 
     // xp cost curve, x^3 -> x^2.5 -> x^2 -> x^1.5 -> x^1
     private int calculateXpCost(int enchantLevel) {
-        double exponent = 3.0 - 0.5 * countFilledIngredients();
-        return (int) Math.round(Math.pow(enchantLevel+1, exponent));
+        int x = enchantLevel;
+        double i = 2.7 - 0.4*countFilledIngredients();
+        return (int) Math.round(7+x*x*x*Math.log(i));
     }
 
     // consume one of each filled ingredient slot

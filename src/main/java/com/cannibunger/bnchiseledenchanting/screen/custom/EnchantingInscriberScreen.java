@@ -5,6 +5,10 @@ import com.cannibunger.bnchiseledenchanting.block.entity.EnchantingInscriberBloc
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -13,6 +17,7 @@ import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,7 +29,11 @@ import java.util.List;
 public class EnchantingInscriberScreen extends AbstractContainerScreen<EnchantingInscriberMenu> {
     // book texture
     private static final ResourceLocation ENCHANTING_BOOK_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/enchanting_table_book.png");
-    private static final ResourceLocation GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(BNChiseledEnchanting.MODID, "textures/gui/enchantinginscriber/enchantinginscribergui.png");
+    // gui texture
+    private static final ResourceLocation GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(BNChiseledEnchanting.MODID, "textures/gui/enchantinginscriber/enchantinginscriber_gui.png");
+    // enchant option texture
+
+
     private final RandomSource random = RandomSource.create();
     private BookModel bookModel;
     public int time;
@@ -36,21 +45,26 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
     public float oOpen;
     private ItemStack last = ItemStack.EMPTY;
 
-    private static final int LIST_X = 59;       // pixel offset from left of panel
-    private static final int LIST_Y = 17;       // pixel offset from top of panel
-    private static final int ROW_HEIGHT = 15;   // row height
-    private static final int ROW_WIDTH = 110;
-    private static final int VISIBLE_ROWS = 7;  // # of rows
-    private int scrollOffset = 0;               // offset to scroll thru rows
+
+    private static final int LIST_X = 56;                                       // pixel offset from left of panel
+    private static final int LIST_Y = 17;                                       // pixel offset from top of panel
+    private static final int ROW_HEIGHT = 15;                                   // row height
+    private static final int ROW_WIDTH = 130 - (6);                             // length of texture - 6 (bar width + 1 L/R margin
+    private static final int VISIBLE_ROWS = 7;                                  // # of rows
+    private int scrollOffset = 0;                                               // offset to scroll thru rows
+    private static final int SCROLLBAR_X = LIST_X + ROW_WIDTH+1;                // just right of the button list + 1 gap
+    private static final int SCROLLBAR_HEIGHT = VISIBLE_ROWS * ROW_HEIGHT - 2;  // matching to buttons height
+    private static final int SCROLLBAR_WIDTH = 4;                               // width of scrollbar
 
 
     // constructor
     public EnchantingInscriberScreen(EnchantingInscriberMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
-        this.imageWidth = 176;  // keep 176, length of inventory
+        this.imageWidth = 194;  // keep 176, length of inventory
         this.imageHeight = 222; // keep 222, height of menu
 
         this.inventoryLabelY = imageHeight - 94; // offset for inventory label
+        this.inventoryLabelX = EnchantingInscriberMenu.invXStart;
     }
 
     // on load, build buttons
@@ -58,31 +72,45 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
     protected void init() {
         super.init();
         this.bookModel = new BookModel(this.minecraft.getEntityModels().bakeLayer(ModelLayers.BOOK));
-        rebuildButtons();
+        buildButtons();
     }
 
     // handler to build buttons
-    private void rebuildButtons() {
+    private void buildButtons() {
         clearWidgets(); // remove all UI buttons (reset)
 
         List<EnchantingInscriberMenu.indexedOption> options = menu.getCompatibleOptions();  // get enchants
+
         int visible = Math.max(0, Math.min(VISIBLE_ROWS, options.size() - scrollOffset));   // limit visible rows if less than max
+        int maxOffset = Math.max(0, options.size() - VISIBLE_ROWS);                         // get max available offset
+        scrollOffset = Math.max(0, Math.min(maxOffset, scrollOffset));                      // limit scrolling to max available offset
+
 
         // populate each button with enchants
         for (int i = 0; i < visible; i++) {
             EnchantingInscriberMenu.indexedOption indexed = options.get(scrollOffset + i);      // enchant index, offset by scroll
             EnchantingInscriberBlockEntity.EnchantmentOption option = indexed.option();         // copy enchant from options
-            Enchantment enchantment = option.enchantment().value();                             // unwrap enchant
 
-            // display enchant text [name + num + cost]
-            Component label = Component.literal(Enchantment.getFullname(option.enchantment(), option.level()).getString())
-                    .append(Component.literal("  (" + option.xpCost() + ")"));
+            boolean affordable = canAfford(option.xpCost());
+
+            // name text + formatting
+            Component rawName = Enchantment.getFullname(option.enchantment(), option.level());
+            boolean isCurse = option.enchantment().is(EnchantmentTags.CURSE);
+            ChatFormatting nameColor = !affordable ? ChatFormatting.DARK_GRAY : (isCurse ? ChatFormatting.RED : ChatFormatting.WHITE);
+            Component nameLabel = rawName.copy().withStyle(nameColor);
+
+            // xp cost text
+            Component costLabel = Component.literal(String.valueOf(option.xpCost()));
 
             // calculate y position of row then render
             int rowY = topPos + LIST_Y + i * ROW_HEIGHT;
             int realIndex = indexed.index();
-            addRenderableWidget(Button.builder(label, button -> selectOption(realIndex)).bounds(leftPos + LIST_X, rowY, ROW_WIDTH, ROW_HEIGHT).build());
+            EnchantOptionButton button = new EnchantOptionButton(leftPos + LIST_X, rowY, ROW_WIDTH, ROW_HEIGHT, nameLabel, costLabel, b -> selectOption(realIndex));
+            button.active = affordable;
+            addRenderableWidget(button);
         }
+
+
     }
 
     // client side button click handler
@@ -108,6 +136,7 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
         super.render(graphics, mouseX, mouseY, partialTick);
         ItemStack target = menu.getInventory();                             // fetch inscriber inventory
         boolean enchantsAvailable = !menu.getOptions().isEmpty();           // is enchants available?
+        renderScrollbar(graphics);                                          // scrollbar
 
         // render text if not meeting needs
         int textX = leftPos + LIST_X + ROW_WIDTH/2;
@@ -132,7 +161,7 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
         int maxOffset = Math.max(0, options.size() - VISIBLE_ROWS);                         // max scrollable
         int newOffset = scrollOffset - (int) Math.signum(scrollY);                          // calculate current scroll
         scrollOffset = Math.max(0, Math.min(maxOffset, newOffset));                         // clamp scrolling
-        rebuildButtons();                                                                   // rebuild visisble buttons
+        buildButtons();                                                                   // rebuild visisble buttons
         return true;
     }
 
@@ -164,7 +193,7 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
         }
 
         if (changed) {
-            rebuildButtons();
+            buildButtons();
         }
     }
 
@@ -174,7 +203,7 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
         float f1 = Mth.lerp(partialTick, this.oFlip, this.flip);
         Lighting.setupForEntityInInventory();
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate((float)x + 33.0F, (float)y + 35.0F, 100.0F);
+        guiGraphics.pose().translate((float)x + 29.0F, (float)y + 38.0F, 100.0F);           // BOOK SCREEN COORDS
         float f2 = 40.0F;
         guiGraphics.pose().scale(-40.0F, 40.0F, 40.0F);
         guiGraphics.pose().mulPose(Axis.XP.rotationDegrees(25.0F));
@@ -224,5 +253,165 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
         f1 = Mth.clamp(f1, -0.2F, 0.2F);
         this.flipA = this.flipA + (f1 - this.flipA) * 0.9F;
         this.flip = this.flip + this.flipA;
+    }
+
+    // scrollbar renderer
+    private void renderScrollbar(GuiGraphics graphics) {
+        List<EnchantingInscriberMenu.indexedOption> options = menu.getCompatibleOptions();
+        if (options.size() <= VISIBLE_ROWS) {
+            return; // nothing to scroll
+        }
+
+        int trackX = leftPos + SCROLLBAR_X;
+        int trackY = topPos + LIST_Y + 1;
+
+        // scrollbar background
+        graphics.fill(trackX, trackY, trackX + SCROLLBAR_WIDTH, trackY + SCROLLBAR_HEIGHT, 0xFF51493a);
+
+        // make bar proportional to list size
+        int maxOffset = options.size() - VISIBLE_ROWS;
+        int thumbHeight = Math.max(10, SCROLLBAR_HEIGHT * VISIBLE_ROWS / options.size());
+        int scrollableTrackSpace = SCROLLBAR_HEIGHT - thumbHeight;
+        int thumbY = trackY + (maxOffset == 0 ? 0 : scrollableTrackSpace * scrollOffset / maxOffset);
+
+        graphics.fill(trackX, thumbY, trackX + SCROLLBAR_WIDTH, thumbY + thumbHeight, 0xFFBDBDBD);
+    }
+
+    // scrollbar functionality
+    private boolean draggingScrollbar = false;
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        List<EnchantingInscriberMenu.indexedOption> options = menu.getCompatibleOptions();
+
+        if (button == 0 && options.size() > VISIBLE_ROWS) {
+            int trackX = leftPos + SCROLLBAR_X;
+            int trackY = topPos + LIST_Y + 1;
+
+            if (mouseX >= trackX && mouseX <= trackX + SCROLLBAR_WIDTH && mouseY >= trackY && mouseY <= trackY + SCROLLBAR_HEIGHT) {
+                draggingScrollbar = true;
+                updateScrollFromMouse(mouseY, options.size());
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    // check for click-dragging
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (draggingScrollbar) {
+            updateScrollFromMouse(mouseY, menu.getCompatibleOptions().size());
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    // check for when released
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        draggingScrollbar = false;
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    // get scrollwheel
+    private void updateScrollFromMouse(double mouseY, int totalOptions) {
+        int maxOffset = Math.max(0, totalOptions - VISIBLE_ROWS);
+        if (maxOffset == 0) {
+            scrollOffset = 0;
+            return;
+        }
+        int trackY = topPos + LIST_Y;
+        double relative = (mouseY - trackY) / (double) SCROLLBAR_HEIGHT;
+        scrollOffset = Math.max(0, Math.min(maxOffset, (int) Math.round(relative * maxOffset)));
+        buildButtons();
+    }
+
+    // custom button class for text formatting
+    private static class EnchantOptionButton extends Button {
+        private static final int PADDING = 3;
+        private static final int GAP = 4;
+        private static final double SCROLL_SPEED_PX_PER_SEC = 20.0;
+        private static final long SCROLL_PAUSE_MS = 500;
+
+        private final Component nameLabel;
+        private final Component costLabel;
+
+        protected EnchantOptionButton(int x, int y, int width, int height, Component nameLabel, Component costLabel, OnPress onPress) {
+            super(x, y, width, height, nameLabel.copy().append(" ").append(costLabel), onPress, DEFAULT_NARRATION);
+            this.nameLabel = nameLabel;
+            this.costLabel = costLabel;
+        }
+
+        @Override
+        public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            // background color, dim if not affordable
+            int bgColor;
+            if (!this.active) {
+                bgColor = 0xFF51493a;
+            } else {
+                bgColor = this.isHoveredOrFocused() ? 0xFFb688ae : 0xFFa09172;
+            }
+
+            graphics.fill(getX(), getY(), getX() + width, getY() + height, bgColor);
+
+            Font font = Minecraft.getInstance().font;
+            int nameColor = 0xFFFFFF;       // text color: NOT FUNCTIONAL
+            int costColor = this.active ? 0xFF7efc20 : 0xFFAA0000;     // xp color: green if affordable, red if not
+            int textY = getY() + (height - font.lineHeight) / 2;
+
+            // cost: right-aligned
+            int costWidth = font.width(costLabel);
+            int costX = getX() + width - PADDING - costWidth;
+            graphics.drawString(font, costLabel, costX, textY, costColor, true);
+
+            int nameAreaX = getX() + PADDING;
+            int nameAreaWidth = width - PADDING * 2 - costWidth - GAP;
+            int nameWidth = font.width(nameLabel);
+
+            // name: left-aligned
+            if (nameWidth <= nameAreaWidth) {
+                // if fits, no scroll
+                graphics.drawString(font, nameLabel, nameAreaX, textY, nameColor, true);
+                return;
+            }
+
+            if (!this.isHoveredOrFocused()) {
+                // if not hovered, no scroll
+                graphics.enableScissor(nameAreaX, getY(), nameAreaX + nameAreaWidth, getY() + height);
+                graphics.drawString(font, nameLabel, nameAreaX, textY, nameColor, true);
+                graphics.disableScissor();
+                return;
+            }
+
+            // if hovered+overflowing, scroll
+            int scrollRange = nameWidth - nameAreaWidth;
+            long travelTimeMs = Math.max(1, (long) (scrollRange / SCROLL_SPEED_PX_PER_SEC * 1000));
+            long cycle = travelTimeMs * 2 + SCROLL_PAUSE_MS * 2;
+            long t = Util.getMillis() % cycle;
+
+            int offset;
+            if (t < SCROLL_PAUSE_MS) {
+                offset = 0;
+            } else if (t < SCROLL_PAUSE_MS + travelTimeMs) {
+                offset = (int) ((t - SCROLL_PAUSE_MS) / (double) travelTimeMs * scrollRange);
+            } else if (t < SCROLL_PAUSE_MS * 2 + travelTimeMs) {
+                offset = scrollRange;
+            } else {
+                long t2 = t - SCROLL_PAUSE_MS * 2 - travelTimeMs;
+                offset = scrollRange - (int) (t2 / (double) travelTimeMs * scrollRange);
+            }
+
+            graphics.enableScissor(nameAreaX, getY(), nameAreaX + nameAreaWidth, getY() + height);
+            graphics.drawString(font, nameLabel, nameAreaX - offset, textY, nameColor, true);
+            graphics.disableScissor();
+        }
+    }
+
+    // check if able to afford enchant
+    private boolean canAfford(int xpCost) {
+        if (minecraft == null || minecraft.player == null) {
+            return false;
+        }
+        return minecraft.player.getAbilities().instabuild || minecraft.player.experienceLevel >= xpCost;
     }
 }
