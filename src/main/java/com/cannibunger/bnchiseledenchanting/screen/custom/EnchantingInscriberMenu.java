@@ -226,29 +226,15 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
 
     // check if able to apply enchantment
     private boolean canApply(ItemStack target, Holder<Enchantment> enchantmentHolder) {
-        Enchantment enchantment = enchantmentHolder.value();    // target enchantment
+        Enchantment enchantment = enchantmentHolder.value();                                    // enchantment to check
 
-        // check if compatible
+        // check if enchantable
         if (!enchantment.canEnchant(target)) {
             return false;
         }
 
-        // check for conflicts
-        ItemEnchantments current = EnchantmentHelper.getEnchantmentsForCrafting(target);
-        for (Holder<Enchantment> existing : current.keySet()) {
-            // if same enchant, skip
-            if (existing.equals(enchantmentHolder)) {
-                continue;
-            }
-
-            // check if enchanting conflicts exist
-            boolean conflicts = existing.value().exclusiveSet().stream().anyMatch(h -> h.equals(enchantmentHolder))
-                    || enchantment.exclusiveSet().stream().anyMatch(h -> h.equals(existing));
-            if (conflicts) {
-                return false;
-            }
-        }
-        return true;
+        ItemEnchantments current = EnchantmentHelper.getEnchantmentsForCrafting(target);        // get target enchantments
+        return EnchantmentHelper.isEnchantmentCompatible(current.keySet(), enchantmentHolder);  // return if compatible
     }
 
     // handler for shift+click
