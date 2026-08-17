@@ -1,0 +1,12 @@
+{
+  "block.bnchiseledenchanting.enchanting_inscriber": "附魔铭刻台",
+
+  "tooltip.bnchiseledenchanting.enchanting_inscriber.tooltip": "§6§o从附近的雕纹书架§r\n§e§o获取魔咒§r\n\n§6§o似乎可以用某些§r\n§e§o魔法物品来增强……§r",
+  "tooltip.bnchiseledenchanting.shiftdown.tooltip":"§8按住[§7Shift§8]查看摘要",
+
+  "gui.bnchiseledenchanting.no_enchantments_found1": "附近没有",
+  "gui.bnchiseledenchanting.no_enchantments_found2": "附魔书！",
+  "gui.bnchiseledenchanting.awaiting_item": "等待物品",
+  "gui.bnchiseledenchanting.no_compatible_enchantments1": "没有兼容的",
+  "gui.bnchiseledenchanting.no_compatible_enchantments2": "魔咒！"
+}
