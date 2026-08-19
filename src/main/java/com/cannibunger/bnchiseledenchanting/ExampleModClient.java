@@ -1,3 +1,5 @@
+// DO NOT DELETE, NEEDED FOR CONFIG
+
 package com.cannibunger.bnchiseledenchanting;
 
 import net.minecraft.client.Minecraft;

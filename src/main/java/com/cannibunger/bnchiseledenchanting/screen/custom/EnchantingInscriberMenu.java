@@ -2,9 +2,12 @@ package com.cannibunger.bnchiseledenchanting.screen.custom;
 
 import com.cannibunger.bnchiseledenchanting.block.ModBlocks;
 import com.cannibunger.bnchiseledenchanting.block.entity.EnchantingInscriberBlockEntity;
+import com.cannibunger.bnchiseledenchanting.config.BNChiseledEnchantingCommonConfig;
 import com.cannibunger.bnchiseledenchanting.screen.ModMenuTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -13,8 +16,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -73,8 +76,6 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
             }
         };
 
-
-
         // add UI slot for enchanted, restrict to enchantable items and limit to 1 item
         addSlot(new Slot(inputContainer, 0, inscriberInvX, inscriberInvY) {
             @Override
@@ -88,30 +89,35 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
             }
         });
 
+        // fetch items to use from config
+        Item itemA = BuiltInRegistries.ITEM.get(ResourceLocation.parse(BNChiseledEnchantingCommonConfig.CONFIG.itemA.get()));
+        Item itemB = BuiltInRegistries.ITEM.get(ResourceLocation.parse(BNChiseledEnchantingCommonConfig.CONFIG.itemB.get()));
+        Item itemC = BuiltInRegistries.ITEM.get(ResourceLocation.parse(BNChiseledEnchantingCommonConfig.CONFIG.itemC.get()));
+        Item itemD = BuiltInRegistries.ITEM.get(ResourceLocation.parse(BNChiseledEnchantingCommonConfig.CONFIG.itemD.get()));
 
         // ingredient slots: amethyst shard, echo shard, blaze powder, dragon's breath
         addSlot(new Slot(ingredientContainer, 0, inscriberInvX - 10, inscriberInvY + 22) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(Items.AMETHYST_SHARD);
+                return stack.is(itemA);
             }
         });
         addSlot(new Slot(ingredientContainer, 1, inscriberInvX + 10, inscriberInvY + 22) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(Items.TRIAL_KEY);
+                return stack.is(itemB);
             }
         });
         addSlot(new Slot(ingredientContainer, 2, inscriberInvX - 10, inscriberInvY + 42) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(Items.BLAZE_POWDER);
+                return stack.is(itemC);
             }
         });
         addSlot(new Slot(ingredientContainer, 3, inscriberInvX + 10, inscriberInvY + 42) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return stack.is(Items.DRAGON_BREATH);
+                return stack.is(itemD);
             }
         });
 
@@ -320,11 +326,13 @@ public class EnchantingInscriberMenu extends AbstractContainerMenu {
         return count;
     }
 
-    // xp cost curve, x^3 -> x^2.5 -> x^2 -> x^1.5 -> x^1
+    // xp cost curve, minLevel + (growthMult * x^3 * ln(2.7 - discountMult * ingredients))
     private int calculateXpCost(int enchantLevel) {
-        int x = enchantLevel;
-        double i = 2.7 - 0.4*countFilledIngredients();
-        return (int) Math.round(7+x*x*x*Math.log(i));
+        int start = BNChiseledEnchantingCommonConfig.CONFIG.minLevel.get();
+        double growth = BNChiseledEnchantingCommonConfig.CONFIG.growthMultiplier.get();
+        double discount = 2.7 - BNChiseledEnchantingCommonConfig.CONFIG.discountMultiplier.get() * countFilledIngredients();
+
+        return (int) Math.round(start + (growth * (enchantLevel * enchantLevel * enchantLevel) * Math.log(discount)));
     }
 
     // consume one of each filled ingredient slot

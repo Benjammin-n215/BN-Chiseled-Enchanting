@@ -2,6 +2,8 @@ package com.cannibunger.bnchiseledenchanting.screen.custom;
 
 import com.cannibunger.bnchiseledenchanting.BNChiseledEnchanting;
 import com.cannibunger.bnchiseledenchanting.block.entity.EnchantingInscriberBlockEntity;
+import com.cannibunger.bnchiseledenchanting.config.BNChiseledEnchantingClientConfig;
+import com.cannibunger.bnchiseledenchanting.config.BNChiseledEnchantingCommonConfig;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -15,6 +17,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.model.BookModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.EnchantmentTags;
@@ -31,7 +34,9 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
     private static final ResourceLocation ENCHANTING_BOOK_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/enchanting_table_book.png");
     // gui texture
     private static final ResourceLocation GUI_TEXTURE = ResourceLocation.fromNamespaceAndPath(BNChiseledEnchanting.MODID, "textures/gui/enchantinginscriber/enchantinginscriber_gui.png");
-    // enchant option texture
+    // gui texture w/ no item borders
+    private static final ResourceLocation GUI_TEXTURE_ALT = ResourceLocation.fromNamespaceAndPath(BNChiseledEnchanting.MODID, "textures/gui/enchantinginscriber/enchantinginscriber_gui_alt.png");
+
 
 
     private final RandomSource random = RandomSource.create();
@@ -126,7 +131,18 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
         int i = (this.width - this.imageWidth) / 2;     // x center
         int j = (this.height - this.imageHeight) / 2;   // y center
 
-        graphics.blit(GUI_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        // check if using custom items, if false then use non-highlight texture
+        boolean isOriginalItems = false;
+        if (BNChiseledEnchantingCommonConfig.CONFIG.itemA.get().equals("minecraft:amethyst_shard") && BNChiseledEnchantingCommonConfig.CONFIG.itemB.get().equals("minecraft:trial_key") && BNChiseledEnchantingCommonConfig.CONFIG.itemC.get().equals("minecraft:blaze_powder") && BNChiseledEnchantingCommonConfig.CONFIG.itemD.get().equals("minecraft:dragon_breath")) {
+            isOriginalItems = true;
+        }
+
+        if (isOriginalItems) {
+            graphics.blit(GUI_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        } else {
+            graphics.blit(GUI_TEXTURE_ALT, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        }
+
         this.renderBook(graphics, i, j, partialTick);
     }
 
@@ -413,5 +429,36 @@ public class EnchantingInscriberScreen extends AbstractContainerScreen<Enchantin
             return false;
         }
         return minecraft.player.getAbilities().instabuild || minecraft.player.experienceLevel >= xpCost;
+    }
+
+    // render tooltips for hintmode
+    @Override
+    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+        // if hint mode is enabled, display tooltip w/ item name
+        boolean hintMode = BNChiseledEnchantingClientConfig.CONFIG.hintMode.get();
+        if (hintMode) {
+            int inscriberInvX = ((this.width - this.imageWidth) / 2) + 20;
+            int inscriberInvY = ((this.height - this.imageHeight) / 2) + 57;
+            int slotSize = 18;
+
+            // check given slots, display tooltip w/ item name
+            boolean isRow1 = mouseY >= inscriberInvY + 22 && mouseY < inscriberInvY + 22 + slotSize;
+            boolean isRow2 = mouseY >= inscriberInvY + 42 && mouseY < inscriberInvY + 42 + slotSize;
+            if (mouseX >= inscriberInvX-10 && mouseX < inscriberInvX-10+slotSize) {
+                if (isRow1) {
+                    graphics.renderTooltip(this.font, BuiltInRegistries.ITEM.get(ResourceLocation.parse(BNChiseledEnchantingCommonConfig.CONFIG.itemA.get())).getDefaultInstance().getHoverName(), mouseX, mouseY);
+                } else if (isRow2) {
+                    graphics.renderTooltip(this.font, BuiltInRegistries.ITEM.get(ResourceLocation.parse(BNChiseledEnchantingCommonConfig.CONFIG.itemC.get())).getDefaultInstance().getHoverName(), mouseX, mouseY);
+                }
+            } else if (mouseX >= inscriberInvX+10 && mouseX < inscriberInvX+10+slotSize) {
+                if (isRow1) {
+                    graphics.renderTooltip(this.font, BuiltInRegistries.ITEM.get(ResourceLocation.parse(BNChiseledEnchantingCommonConfig.CONFIG.itemB.get())).getDefaultInstance().getHoverName(), mouseX, mouseY);
+                } else if (isRow2) {
+                    graphics.renderTooltip(this.font, BuiltInRegistries.ITEM.get(ResourceLocation.parse(BNChiseledEnchantingCommonConfig.CONFIG.itemD.get())).getDefaultInstance().getHoverName(), mouseX, mouseY);
+                }
+            }
+
+        }
+        super.renderTooltip(graphics, mouseX, mouseY); // default renderer, currently renders on top of hint mode tooltip
     }
 }

@@ -3,6 +3,8 @@ package com.cannibunger.bnchiseledenchanting;
 import com.cannibunger.bnchiseledenchanting.block.ModBlocks;
 import com.cannibunger.bnchiseledenchanting.block.entity.ModBlockEntities;
 import com.cannibunger.bnchiseledenchanting.block.entity.renderer.EnchantingInscriberBlockEntityRenderer;
+import com.cannibunger.bnchiseledenchanting.config.BNChiseledEnchantingClientConfig;
+import com.cannibunger.bnchiseledenchanting.config.BNChiseledEnchantingCommonConfig;
 import com.cannibunger.bnchiseledenchanting.item.ModItems;
 import com.cannibunger.bnchiseledenchanting.screen.ModMenuTypes;
 import com.cannibunger.bnchiseledenchanting.screen.custom.EnchantingInscriberMenu;
@@ -60,16 +62,17 @@ public class BNChiseledEnchanting {
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
 
-        ModBlocks.register(modEventBus);
-        ModItems.register(modEventBus);
-        ModBlockEntities.register(modEventBus);
-        ModMenuTypes.register(modEventBus);
+        ModBlocks.register(modEventBus);            // register blocks
+        ModItems.register(modEventBus);             // register items
+        ModBlockEntities.register(modEventBus);     // register block entity
+        ModMenuTypes.register(modEventBus);         // register gui
 
-        // Register the item to a creative tab
+        // register items to creative tab
         modEventBus.addListener(this::addCreative);
 
-        // Register our mod's ModConfigSpec so that FML can create and load the config file for us
-        //modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        // register config files
+        modContainer.registerConfig(ModConfig.Type.CLIENT, BNChiseledEnchantingClientConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, BNChiseledEnchantingCommonConfig.SPEC);
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
