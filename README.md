@@ -56,7 +56,3 @@ When enchanting costs are too high, use _**certain magical items**_ found throug
 ## Compatibility
 
 This mod should be compatible with mods that either add new enchantments or modify enchantment compatibility behavior. If you run into any bugs, [report them on github](https://github.com/Benjammin-n215/BN-Chiseled-Enchanting/issues).
-
-(+) visually distinct unaffordable enchantments
-
-(+) hide already claimed enchantments
